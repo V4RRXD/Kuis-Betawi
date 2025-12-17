@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kuis Budaya Betawi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { 
+            box-sizing: border-box; 
+            font-family: 'Poppins', sans-serif; 
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body { 
+            margin: 0; 
+            background: linear-gradient(135deg, #7b2cbf, #3a0ca3); 
+            color: #fff; 
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        .center { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            flex-direction: column; 
+            padding: 20px;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .screen {
+            width: 100%;
+            max-width: 800px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            pointer-events: none;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .screen.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+            position: relative;
+        }
+        
+        .screen.exit {
+            opacity: 0;
+            transform: translateY(-20px);
+            pointer-events: none;
+        }
+        
+        h1, h2 { margin: 10px 0; }
+        
+        .loading { 
+            font-size: 2em; 
+            animation: pulse 1.5s infinite; 
+        }
+        
+        .continue-page {
+            max-width: 700px;
+        }
+        
+        .continue-title {
+            font-size: 3.5em;
+            background: linear-gradient(90deg, #ffd700, #ff8c00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 20px;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .continue-title {
+                font-size: 2.5em;
+            }
+        }
+        
+        .continue-btn {
+            background: linear-gradient(90deg, #00b09b, #96c93d);
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 1.4em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .continue-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 25px rgba(0,0,0,0.3);
+        }
+        
+        .continue-btn:active {
+            transform: translateY(0);
+        }
+        
+        .quiz-container { 
+            max-width: 700px; 
+            background: rgba(255,255,255,0.12); 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4); 
+            backdrop-filter: blur(10px); 
+            animation: slideUp 0.8s ease; 
+            width: 90%;
+            margin: 20px auto;
+        }
+        
+        .question-transition {
+            animation: questionChange 0.6s ease forwards;
+        }
+        
+        .option { 
+            background: rgba(255,255,255,0.15); 
+            padding: 18px; 
+            margin: 12px 0; 
+            border-radius: 15px; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            font-size: 1.1em;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: optionAppear 0.5s ease forwards;
+            position: relative;
+        }
+        
+        .option:nth-child(1) { animation-delay: 0.1s; }
+        .option:nth-child(2) { animation-delay: 0.2s; }
+        .option:nth-child(3) { animation-delay: 0.3s; }
+        .option:nth-child(4) { animation-delay: 0.4s; }
+        
+        .option:hover:not(.disabled) { 
+            background: rgba(255,255,255,0.3); 
+            transform: scale(1.02); 
+        }
+        
+        .option.disabled {
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+        
+        .option.selected {
+            transform: scale(1.03);
+        }
+        
+        .correct { 
+            background: #2ecc71 !important; 
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.5);
+            animation: correctPulse 0.5s ease forwards !important;
+        }
+        
+        .wrong { 
+            background: #e74c3c !important; 
+            box-shadow: 0 0 20px rgba(231, 76, 60, 0.5);
+            animation: wrongShake 0.5s ease forwards !important;
+        }
+        
+        .top-bar { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 20px; 
+            font-weight: 600; 
+            font-size: 1.2em;
+            background: rgba(0,0,0,0.2);
+            padding: 15px 20px;
+            border-radius: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .top-bar div {
+            margin: 5px 10px;
+        }
+        
+        .watermark { 
+            position: fixed; 
+            bottom: 10px; 
+            right: 15px; 
+            opacity: 0.4; 
+            font-size: 0.9em; 
+            z-index: 100;
+        }
+        
+        .lock-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            color: #fff;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .final-score {
+            font-size: 4em;
+            background: linear-gradient(90deg, #ffd700, #ff8c00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 20px 0;
+            animation: scorePulse 2s infinite;
+        }
+        
+        .restart-btn {
+            background: linear-gradient(90deg, #7b2cbf, #3a0ca3);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .restart-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #00b09b, #96c93d);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 4px;
+        }
+        
+        /* Logo Styles - FIXED: Tidak bulat */
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+        
+        .logo-image {
+            width: 180px; /* Lebih besar untuk melihat detail */
+            height: auto; /* Biarkan tinggi menyesuaikan proporsi */
+            object-fit: contain;
+            border-radius: 10px; /* Sedikit rounded corner, tidak bulat */
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px;
+        }
+        
+        .madeby-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 1s ease;
+        }
+        
+        .madeby-title {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #ffd700, #ff8c00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 10px 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .madeby-subtitle {
+            font-size: 1.2em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        @keyframes fadeIn { 
+            from {opacity:0;} 
+            to {opacity:1;} 
+        }
+        
+        @keyframes slideUp { 
+            from {transform:translateY(40px); opacity:0;} 
+            to {opacity:1; transform: translateY(0);} 
+        }
+        
+        @keyframes pulse { 
+            0%,100%{opacity:1;} 
+            50%{opacity:0.5;} 
+        }
+        
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.03); }
+        }
+        
+        @keyframes shake {
+            0%, 100% {transform: translateX(0);}
+            10%, 30%, 50%, 70%, 90% {transform: translateX(-5px);}
+            20%, 40%, 60%, 80% {transform: translateX(5px);}
+        }
+        
+        @keyframes correctPulse {
+            0% {transform: scale(1); box-shadow: 0 0 0 rgba(46, 204, 113, 0.5);}
+            50% {transform: scale(1.05); box-shadow: 0 0 30px rgba(46, 204, 113, 0.7);}
+            100% {transform: scale(1); box-shadow: 0 0 20px rgba(46, 204, 113, 0.5);}
+        }
+        
+        @keyframes wrongShake {
+            0%, 100% {transform: translateX(0);}
+            10%, 30%, 50%, 70%, 90% {transform: translateX(-5px);}
+            20%, 40%, 60%, 80% {transform: translateX(5px);}
+        }
+        
+        @keyframes questionChange {
+            0% {opacity: 0; transform: translateY(20px);}
+            100% {opacity: 1; transform: translateY(0);}
+        }
+        
+        @keyframes optionAppear {
+            0% {opacity: 0; transform: translateY(20px);}
+            100% {opacity: 1; transform: translateY(0);}
+        }
+        
+        @keyframes scorePulse {
+            0%, 100% {transform: scale(1);}
+            50% {transform: scale(1.05);}
+        }
+        
+        .shake {
+            animation: shake 0.5s;
+        }
+        
+        .sound-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5em;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .sound-toggle:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1);
+        }
+        
+        .sound-toggle.muted {
+            opacity: 0.5;
+        }
+        
+        .loading-dots {
+            display: inline-block;
+            margin-left: 10px;
+        }
+        
+        .loading-dots span {
+            animation: dots 1.5s infinite;
+            opacity: 0;
+        }
+        
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes dots {
+            0%, 20% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        
+        .explanation {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 0.9em;
+            text-align: left;
+            border-left: 4px solid #ffd700;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .feedback-container {
+            min-height: 80px;
+            margin-top: 20px;
+        }
+        
+        #feedback {
+            font-weight: 600;
+            margin-bottom: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .option-result {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <!-- Lock Screen (muncul saat mencoba inspect) -->
+    <div id="lockScreen" class="lock-screen">
+        <h1>⚠️ AKSES DIBLOKIR ⚠️</h1>
+        <p>Mencoba mengakses kode sumber tidak diizinkan!</p>
+        <p>Silakan nikmati kuis dengan jujur.</p>
+        <button onclick="hideLockScreen()" style="margin-top: 20px; padding: 10px 20px; background: #7b2cbf; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            OK, Lanjutkan Kuis
+        </button>
+    </div>
+    
+    <!-- Tombol toggle sound -->
+    <button id="soundToggle" class="sound-toggle" title="Toggle Sound">🔊</button>
+    
+    <!-- Loading Screen -->
+    <div id="loading" class="center screen active">
+        <div>
+            <div class="loading">⏳ Memuat Kuis Budaya Betawi<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></div>
+            <div id="loadingProgress" style="margin-top: 20px; font-size: 0.9em; opacity: 0.8;"></div>
+        </div>
+    </div>
+    
+    <!-- Made By Screen -->
+    <div id="madeby" class="center screen">
+        <div class="madeby-container">
+            <div class="logo-container">
+                <img id="logoImage" class="logo-image" src="https://files.catbox.moe/gbz0i5.png" alt="Logo Egy" onerror="handleLogoError()">
+            </div>
+            <h1 class="madeby-title">Made By Egy</h1>
+            <p class="madeby-subtitle">Kuis Tentang Budaya Betawi</p>
+        </div>
+    </div>
+    
+    <!-- Continue Page -->
+    <div id="continuePage" class="center screen">
+        <div class="continue-page">
+            <h1 class="continue-title">KUIS BUDAYA BETAWI</h1>
+            <p style="font-size: 1.3em; max-width: 600px; margin: 0 auto 30px;">
+                Uji pengetahuanmu tentang budaya Betawi!<br>
+                Kuis ini terdiri dari <strong>5 soal</strong> dengan waktu <strong>5 menit</strong>.<br>
+                Jawaban benar +10 poin, jawaban salah -5 poin.
+            </p>
+            <button class="continue-btn" onclick="startQuiz()">🚀 CONTINUE KE KUIS</button>
+        </div>
+    </div>
+    
+    <!-- Quiz Screen -->
+    <div id="quiz" class="center screen">
+        <div class="quiz-container">
+            <div class="top-bar">
+                <div>⏰ Waktu: <span id="timer">05:00</span></div>
+                <div>⭐ Skor: <span id="score">0</span></div>
+                <div>❓ Soal: <span id="currentQuestion">1</span>/<span id="totalQuestions">5</span></div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            
+            <h2 id="question"></h2>
+            <div id="options"></div>
+            <div class="feedback-container">
+                <p id="feedback" style="font-weight: 600;"></p>
+                <div id="explanation" class="explanation" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Finish Screen -->
+    <div id="finishScreen" class="center screen">
+        <div class="quiz-container">
+            <div class="logo-container">
+                <img id="finishLogo" class="logo-image" src="https://files.catbox.moe/gbz0i5.png" alt="Logo Egy" onerror="handleLogoError()" style="width: 150px;">
+            </div>
+            <h1>🎉 SELAMAT! 🎉</h1>
+            <p>Kamu telah menyelesaikan Kuis Budaya Betawi</p>
+            <div class="final-score" id="finalScore">0</div>
+            <p id="scoreMessage"></p>
+            <button class="restart-btn" onclick="restartQuiz()">🔄 Main Lagi</button>
+        </div>
+    </div>
+    
+    <div class="watermark">Egy's Project</div>
+
+    <script>
+        // Pertanyaan kuis (5 soal) dengan penjelasan
+        const questions = [
+            {
+                q: "Apa ciri khas budaya Betawi yang paling menonjol?",
+                options: ["Rumah Gadang", "Tari Piring", "Upacara Ngaben", "Ondel-ondel"],
+                answer: 3,
+                explanation: "Ondel-ondel adalah boneka raksasa khas Betawi yang sering ditampilkan dalam berbagai acara budaya. Rumah Gadang berasal dari Minangkabau, Tari Piring dari Minangkabau, dan Upacara Ngaben dari Bali."
+            },
+            {
+                q: "Makanan khas Betawi yang terbuat dari beras ketan, telur, dan kelapa adalah?",
+                options: ["Gudeg", "Pempek", "Kerak Telor", "Rendang"],
+                answer: 2,
+                explanation: "Kerak Telor adalah makanan khas Betawi yang terbuat dari beras ketan, telur, dan kelapa parut. Gudeg berasal dari Yogyakarta, Pempek dari Palembang, dan Rendang dari Minangkabau."
+            },
+            {
+                q: "Alat musik tradisional Betawi yang terbuat dari logam adalah?",
+                options: ["Angklung", "Gamelan", "Gambang Kromong", "Sasando"],
+                answer: 2,
+                explanation: "Gambang Kromong adalah alat musik tradisional Betawi yang terbuat dari logam. Angklung dari Jawa Barat, Gamelan dari Jawa, dan Sasando dari Nusa Tenggara Timur."
+            },
+            {
+                q: "Rumah tradisional Betawi disebut?",
+                options: ["Rumah Gadang", "Rumah Joglo", "Rumah Kebaya", "Rumah Panggung"],
+                answer: 2,
+                explanation: "Rumah Kebaya adalah rumah tradisional Betawi dengan atap yang menyerupai pelana yang dilipat. Rumah Gadang dari Minangkabau, Rumah Joglo dari Jawa, dan Rumah Panggung umum di banyak daerah pesisir."
+            },
+            {
+                q: "Seni pertunjukan Betawi yang menggabungkan musik, tari, dan drama adalah?",
+                options: ["Wayang Kulit", "Lenong", "Ketoprak", "Ludruk"],
+                answer: 1,
+                explanation: "Lenong adalah seni pertunjukan tradisional Betawi yang menggabungkan musik, tari, dan drama dengan dialog humor. Wayang Kulit dari Jawa, Ketoprak dari Jawa, dan Ludruk dari Jawa Timur."
+            }
+        ];
+
+        let index = 0;
+        let score = 0;
+        let time = 300; // 5 menit dalam detik
+        let timerInterval;
+        let quizStarted = false;
+        let soundEnabled = true;
+        let audioContext = null;
+        let answerSelected = false;
+
+        // Elemen DOM
+        const screens = {
+            loading: document.getElementById('loading'),
+            madeby: document.getElementById('madeby'),
+            continuePage: document.getElementById('continuePage'),
+            quiz: document.getElementById('quiz'),
+            finishScreen: document.getElementById('finishScreen')
+        };
+        
+        const qEl = document.getElementById('question');
+        const optEl = document.getElementById('options');
+        const scoreEl = document.getElementById('score');
+        const feedback = document.getElementById('feedback');
+        const explanationEl = document.getElementById('explanation');
+        const currentQuestionEl = document.getElementById('currentQuestion');
+        const totalQuestionsEl = document.getElementById('totalQuestions');
+        const finalScoreEl = document.getElementById('finalScore');
+        const scoreMessageEl = document.getElementById('scoreMessage');
+        const progressEl = document.getElementById('progress');
+        const soundToggle = document.getElementById('soundToggle');
+        const loadingProgress = document.getElementById('loadingProgress');
+        const logoImage = document.getElementById('logoImage');
+        const finishLogo = document.getElementById('finishLogo');
+        
+        // Handle jika logo gagal dimuat
+        function handleLogoError() {
+            console.log("Logo gagal dimuat, menggunakan placeholder...");
+            const logoPlaceholder = document.createElement('div');
+            logoPlaceholder.style.width = '180px';
+            logoPlaceholder.style.height = '120px';
+            logoPlaceholder.style.borderRadius = '10px';
+            logoPlaceholder.style.background = 'linear-gradient(135deg, #ffd700, #ff8c00)';
+            logoPlaceholder.style.display = 'flex';
+            logoPlaceholder.style.alignItems = 'center';
+            logoPlaceholder.style.justifyContent = 'center';
+            logoPlaceholder.style.marginBottom = '20px';
+            logoPlaceholder.style.border = '4px solid rgba(255, 255, 255, 0.2)';
+            logoPlaceholder.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.3)';
+            
+            const logoText = document.createElement('span');
+            logoText.textContent = 'EGY';
+            logoText.style.color = 'white';
+            logoText.style.fontSize = '2.5em';
+            logoText.style.fontWeight = 'bold';
+            
+            logoPlaceholder.appendChild(logoText);
+            
+            // Ganti gambar dengan placeholder
+            if (logoImage && logoImage.parentNode) {
+                logoImage.parentNode.replaceChild(logoPlaceholder, logoImage);
+            }
+            
+            if (finishLogo && finishLogo.parentNode) {
+                const finishPlaceholder = logoPlaceholder.cloneNode(true);
+                finishPlaceholder.style.width = '150px';
+                finishPlaceholder.style.height = '100px';
+                finishPlaceholder.firstChild.style.fontSize = '2em';
+                finishLogo.parentNode.replaceChild(finishPlaceholder, finishLogo);
+            }
+        }
+        
+        // Sound functions
+        function playSound(frequency, duration = 0.2) {
+            if (!soundEnabled) return;
+            
+            try {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+                
+            } catch (error) {
+                console.log("Sound error:", error);
+            }
+        }
+        
+        function playSuccessSound() {
+            playSound(800, 0.3);
+        }
+        
+        function playErrorSound() {
+            playSound(400, 0.3);
+        }
+        
+        function playFinishSound() {
+            if (!soundEnabled) return;
+            
+            try {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
+                setTimeout(() => playSound(600, 0.2), 0);
+                setTimeout(() => playSound(800, 0.2), 200);
+                setTimeout(() => playSound(1000, 0.3), 400);
+                
+            } catch (error) {
+                console.log("Finish sound error:", error);
+            }
+        }
+
+        // Proteksi Developer Tools
+        function protectCode() {
+            document.addEventListener('keydown', function(e) {
+                if (
+                    e.keyCode === 123 || 
+                    (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || 
+                    (e.ctrlKey && e.keyCode === 85)
+                ) {
+                    e.preventDefault();
+                    showLockScreen();
+                    return false;
+                }
+            });
+            
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                showLockScreen();
+                return false;
+            });
+        }
+
+        function showLockScreen() {
+            const lockScreen = document.getElementById('lockScreen');
+            lockScreen.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            document.body.classList.add('shake');
+            setTimeout(() => {
+                document.body.classList.remove('shake');
+            }, 500);
+        }
+
+        function hideLockScreen() {
+            const lockScreen = document.getElementById('lockScreen');
+            lockScreen.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Fungsi untuk berpindah screen dengan animasi
+        function switchScreen(from, to) {
+            if (from && from.classList.contains('active')) {
+                from.classList.add('exit');
+                setTimeout(() => {
+                    from.classList.remove('active');
+                    from.classList.remove('exit');
+                }, 500);
+            }
+            
+            setTimeout(() => {
+                to.classList.add('active');
+            }, 500);
+        }
+
+        // Fungsi untuk memulai kuis
+        function startQuiz() {
+            switchScreen(screens.continuePage, screens.quiz);
+            quizStarted = true;
+            startTimer();
+            loadQuestionWithAnimation();
+        }
+
+        // Fungsi untuk memuat soal dengan animasi
+        function loadQuestionWithAnimation() {
+            // Reset flag
+            answerSelected = false;
+            
+            // Reset feedback
+            feedback.textContent = "";
+            feedback.style.color = "#fff";
+            explanationEl.style.display = "none";
+            explanationEl.textContent = "";
+            
+            // Animasikan pertanyaan
+            qEl.classList.add('question-transition');
+            
+            // Update progress bar
+            const progressPercent = ((index + 1) / questions.length) * 100;
+            progressEl.style.width = `${progressPercent}%`;
+            
+            setTimeout(() => {
+                qEl.textContent = questions[index].q;
+                qEl.classList.remove('question-transition');
+                
+                // Update counter soal
+                currentQuestionEl.textContent = index + 1;
+                totalQuestionsEl.textContent = questions.length;
+                
+                // Load opsi dengan animasi
+                loadOptionsWithAnimation();
+            }, 300);
+        }
+
+        // Fungsi untuk memuat opsi dengan animasi
+        function loadOptionsWithAnimation() {
+            optEl.innerHTML = "";
+            
+            questions[index].options.forEach((opt, i) => {
+                const div = document.createElement('div');
+                div.className = 'option';
+                div.textContent = String.fromCharCode(65 + i) + ". " + opt;
+                div.dataset.index = i;
+                div.onclick = () => checkAnswer(div, i);
+                optEl.appendChild(div);
+            });
+        }
+
+        // Fungsi untuk memeriksa jawaban
+        function checkAnswer(el, i) {
+            // Cegah multiple click
+            if (answerSelected) return;
+            answerSelected = true;
+            
+            // Nonaktifkan semua opsi (hanya untuk mencegah klik)
+            const allOptions = document.querySelectorAll('.option');
+            allOptions.forEach(opt => {
+                opt.onclick = null;
+                opt.classList.add('disabled');
+            });
+            
+            const correct = questions[index].answer;
+            
+            // Tambahkan penanda untuk jawaban yang benar
+            setTimeout(() => {
+                // Reset animasi dan posisi sebelum menambahkan animasi baru
+                allOptions.forEach(opt => {
+                    opt.style.animation = 'none';
+                    opt.style.transform = 'translateY(0)';
+                });
+                
+                // Set timeout kecil untuk memastikan reset selesai
+                setTimeout(() => {
+                    // Tandai jawaban yang benar
+                    allOptions[correct].classList.add('correct');
+                    
+                    // Jika jawaban salah, tandai jawaban yang dipilih
+                    if (i !== correct) {
+                        el.classList.add('wrong');
+                    } else {
+                        // Jika jawaban benar, jawaban yang dipilih sudah di-mark sebagai correct
+                        el.classList.add('correct');
+                    }
+                    
+                    // Reset animasi untuk semua opsi
+                    allOptions.forEach(opt => {
+                        opt.style.animation = '';
+                    });
+                }, 10);
+            }, 100);
+            
+            if (i === correct) {
+                // Jika jawaban benar
+                feedback.innerHTML = "✅ <strong>Jawaban benar!</strong> +10 poin";
+                feedback.style.color = "#2ecc71";
+                score += 10;
+                
+                // Tampilkan penjelasan
+                explanationEl.textContent = questions[index].explanation;
+                explanationEl.style.display = "block";
+                
+                // Putar suara benar
+                playSuccessSound();
+            } else {
+                // Jika jawaban salah
+                feedback.innerHTML = "❌ <strong>Salah!</strong> -5 poin<br><small>Jawaban benar: " + String.fromCharCode(65 + correct) + ". " + questions[index].options[correct] + "</small>";
+                feedback.style.color = "#e74c3c";
+                score -= 5;
+                
+                // Tampilkan penjelasan
+                explanationEl.textContent = questions[index].explanation;
+                explanationEl.style.display = "block";
+                
+                // Putar suara salah
+                playErrorSound();
+            }
+            
+            scoreEl.textContent = score;
+            
+            // Lanjut ke soal berikutnya setelah delay
+            setTimeout(() => {
+                index++;
+                if (index < questions.length) {
+                    loadQuestionWithAnimation();
+                } else {
+                    finishQuiz();
+                }
+            }, 3000);
+        }
+
+        // Timer
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (quizStarted && time > 0) {
+                    time--;
+                    const m = String(Math.floor(time / 60)).padStart(2, '0');
+                    const s = String(time % 60).padStart(2, '0');
+                    document.getElementById('timer').textContent = `${m}:${s}`;
+                } else if (time <= 0) {
+                    finishQuiz();
+                }
+            }, 1000);
+        }
+
+        // Selesai kuis
+        function finishQuiz() {
+            clearInterval(timerInterval);
+            quizStarted = false;
+            
+            // Putar suara selesai
+            playFinishSound();
+            
+            switchScreen(screens.quiz, screens.finishScreen);
+            
+            finalScoreEl.textContent = score;
+            
+            // Pesan berdasarkan skor
+            let message = "";
+            if (score >= 40) {
+                message = "Luar biasa! Kamu benar-benar menguasai budaya Betawi! 🎊";
+            } else if (score >= 20) {
+                message = "Bagus! Pengetahuanmu tentang budaya Betawi cukup baik! 👍";
+            } else {
+                message = "Jangan menyerah! Pelajari lagi budaya Betawi ya! 📚";
+            }
+            
+            scoreMessageEl.textContent = message;
+        }
+
+        // Restart kuis
+        function restartQuiz() {
+            index = 0;
+            score = 0;
+            time = 300;
+            quizStarted = false;
+            answerSelected = false;
+            
+            // Reset progress bar
+            progressEl.style.width = "0%";
+            
+            switchScreen(screens.finishScreen, screens.continuePage);
+        }
+
+        // Toggle sound
+        soundToggle.addEventListener('click', function() {
+            soundEnabled = !soundEnabled;
+            if (soundEnabled) {
+                this.classList.remove('muted');
+                this.textContent = "🔊";
+                this.title = "Sound: ON";
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+            } else {
+                this.classList.add('muted');
+                this.textContent = "🔇";
+                this.title = "Sound: OFF";
+            }
+        });
+
+        // Simulasi loading progress
+        function simulateLoading() {
+            let progress = 0;
+            const loadingInterval = setInterval(() => {
+                progress += 10;
+                loadingProgress.textContent = `Loading... ${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(loadingInterval);
+                    loadingProgress.textContent = "Loading selesai!";
+                    
+                    setTimeout(() => {
+                        switchScreen(screens.loading, screens.madeby);
+                        
+                        setTimeout(() => {
+                            switchScreen(screens.madeby, screens.continuePage);
+                        }, 3000); // Diperpanjang untuk melihat logo
+                    }, 500);
+                }
+            }, 300);
+        }
+
+        // Preload logo
+        function preloadLogo() {
+            const img = new Image();
+            img.src = "https://files.catbox.moe/gbz0i5.png";
+            img.onload = function() {
+                console.log("Logo berhasil dimuat");
+            };
+            img.onerror = function() {
+                console.log("Logo gagal dimuat");
+            };
+        }
+
+        // Inisialisasi aplikasi
+        function initApp() {
+            console.log("Aplikasi dimulai...");
+            
+            // Preload logo
+            preloadLogo();
+            
+            // Mulai loading simulation
+            simulateLoading();
+            
+            // Jalankan proteksi kode
+            protectCode();
+            
+            // Setup event untuk hide lock screen
+            document.addEventListener('click', function(e) {
+                if (e.target.id === 'lockScreen' || e.target.closest('#lockScreen button')) {
+                    hideLockScreen();
+                }
+            });
+        }
+
+        // Mulai aplikasi saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
