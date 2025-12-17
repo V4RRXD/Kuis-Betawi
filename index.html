@@ -19,6 +19,10 @@
             color: #fff; 
             overflow-x: hidden;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         
         .center { 
@@ -36,28 +40,29 @@
             width: 100%;
             max-width: 800px;
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.8s ease, transform 0.8s ease;
+            transition: opacity 0.8s ease;
             pointer-events: none;
-            min-height: 100vh;
+            min-height: auto;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
         
         .screen.active {
             opacity: 1;
-            transform: translateY(0);
+            transform: translate(-50%, -50%);
             pointer-events: all;
-            position: relative;
+            position: fixed;
         }
         
         .screen.exit {
             opacity: 0;
-            transform: translateY(-20px);
+            transform: translate(-50%, -50%);
             pointer-events: none;
         }
         
@@ -70,6 +75,7 @@
         
         .continue-page {
             max-width: 700px;
+            width: 100%;
         }
         
         .continue-title {
@@ -80,6 +86,7 @@
             color: transparent;
             margin-bottom: 20px;
             text-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            line-height: 1.2;
         }
         
         @media (max-width: 768px) {
@@ -119,7 +126,7 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.4); 
             backdrop-filter: blur(10px); 
             animation: slideUp 0.8s ease; 
-            width: 90%;
+            width: 100%;
             margin: 20px auto;
         }
         
@@ -139,6 +146,7 @@
             transform: translateY(20px);
             animation: optionAppear 0.5s ease forwards;
             position: relative;
+            text-align: left;
         }
         
         .option:nth-child(1) { animation-delay: 0.1s; }
@@ -148,7 +156,7 @@
         
         .option:hover:not(.disabled) { 
             background: rgba(255,255,255,0.3); 
-            transform: scale(1.02); 
+            transform: scale(1.02) translateY(0); 
         }
         
         .option.disabled {
@@ -157,7 +165,7 @@
         }
         
         .option.selected {
-            transform: scale(1.03);
+            transform: scale(1.03) translateY(0);
         }
         
         .correct { 
@@ -259,7 +267,7 @@
             border-radius: 4px;
         }
         
-        /* Logo Styles - FIXED: Tidak bulat */
+        /* Logo Styles */
         .logo-container {
             display: flex;
             flex-direction: column;
@@ -267,13 +275,14 @@
             justify-content: center;
             margin-bottom: 30px;
             animation: logoFloat 3s ease-in-out infinite;
+            width: 100%;
         }
         
         .logo-image {
-            width: 180px; /* Lebih besar untuk melihat detail */
-            height: auto; /* Biarkan tinggi menyesuaikan proporsi */
+            width: 180px;
+            height: auto;
             object-fit: contain;
-            border-radius: 10px; /* Sedikit rounded corner, tidak bulat */
+            border-radius: 10px;
             border: 4px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
             margin-bottom: 20px;
@@ -287,6 +296,8 @@
             align-items: center;
             justify-content: center;
             animation: fadeIn 1s ease;
+            width: 100%;
+            max-width: 700px;
         }
         
         .madeby-title {
@@ -441,6 +452,52 @@
             margin-left: 10px;
             font-size: 0.9em;
             opacity: 0.9;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .screen {
+                width: 95%;
+                padding: 10px;
+                position: fixed;
+            }
+            
+            .quiz-container {
+                padding: 20px;
+            }
+            
+            .top-bar {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .top-bar div {
+                margin: 5px 0;
+            }
+            
+            .continue-title {
+                font-size: 2.2em;
+            }
+        }
+        
+        @media (max-height: 700px) {
+            .screen {
+                position: relative;
+                top: auto;
+                left: auto;
+                transform: none;
+                min-height: 100vh;
+            }
+            
+            .screen.active {
+                position: relative;
+                transform: none;
+            }
+            
+            .center {
+                min-height: 100vh;
+            }
         }
     </style>
 </head>
